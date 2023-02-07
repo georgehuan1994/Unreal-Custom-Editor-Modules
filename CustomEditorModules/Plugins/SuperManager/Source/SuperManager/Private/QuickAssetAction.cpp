@@ -130,18 +130,19 @@ void UQuickAssetAction::FixUpRedirectors()
 
 	// 创建 GetAssets() 所需的筛选器
 	FARFilter Filter;
-	Filter.bRecursivePaths = true;					// 检索子文件夹
-	Filter.PackagePaths.Emplace("/Game");
-	Filter.ClassNames.Emplace("ObjectRedirector");
+	Filter.bRecursivePaths = true;					// 递归子文件夹
+	Filter.bRecursiveClasses = true;				// 包括派生类
+	Filter.PackagePaths.Add("/Game");
+	Filter.ClassPaths.Add(UObjectRedirector::StaticClass()->GetClassPathName());
 
 	// 需要重定向的资产数据
 	TArray<FAssetData> OutRedirectors;
-	AssetRegistryModule.Get().GetAssets(Filter, OutRedirectors);
+	AssetRegistryModule.Get().GetAssets(Filter, OutRedirectors, false);
 
 	// 将 FAssetData 转换成 UObjectRedirector 指针
-	for (const FAssetData& Data : OutRedirectors)
+	for (const FAssetData& RedirectorData : OutRedirectors)
 	{
-		if (UObjectRedirector* RedirectorToFix = Cast<UObjectRedirector>(Data.GetAsset()))
+		if (UObjectRedirector* RedirectorToFix = Cast<UObjectRedirector>(RedirectorData.GetAsset()))
 		{
 			RedirectorsToFixArray.Add(RedirectorToFix);
 		}
