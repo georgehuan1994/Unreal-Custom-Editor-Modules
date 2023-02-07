@@ -10,7 +10,8 @@
 #include "ObjectTools.h" // 使用 ObjectTools 中的删除方法，而不是使用 UEditorAssetLibrary 中的强制删除。
 
 #include "AssetRegistry/AssetRegistryModule.h"
-// #include "HAL/Platform.h"
+#include "AssetRegistry/ARFilter.h"
+#include "HAL/Platform.h"
 
 #include "AssetToolsModule.h"
 
@@ -131,7 +132,7 @@ void UQuickAssetAction::FixUpRedirectors()
 	FARFilter Filter;
 	Filter.bRecursivePaths = true;					// 检索子文件夹
 	Filter.PackagePaths.Emplace("/Game");
-	Filter.ClassPaths.Emplace("ObjectRedirector");
+	Filter.ClassNames.Emplace("ObjectRedirector");
 
 	// 需要重定向的资产数据
 	TArray<FAssetData> OutRedirectors;
