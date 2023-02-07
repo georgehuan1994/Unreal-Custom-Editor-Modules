@@ -34,6 +34,7 @@ public class SuperManager : ModuleRules
 				"Niagara",		// NiagaraSystem, NiagaraEmitter
 				"UnrealEd",		// ObjectTools
 				"AssetTools",
+				"ContentBrowser",
 			}
 		);
 

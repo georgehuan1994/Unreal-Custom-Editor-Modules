@@ -139,7 +139,7 @@ void UQuickAssetAction::FixUpRedirectors()
 	TArray<FAssetData> OutRedirectors;
 	AssetRegistryModule.Get().GetAssets(Filter, OutRedirectors, false);
 
-	// 将 FAssetData 转换成 UObjectRedirector 指针
+	// FAssetData.GetAsset() 得到 UObject*, 将其转换成 UObjectRedirector*
 	for (const FAssetData& RedirectorData : OutRedirectors)
 	{
 		if (UObjectRedirector* RedirectorToFix = Cast<UObjectRedirector>(RedirectorData.GetAsset()))
