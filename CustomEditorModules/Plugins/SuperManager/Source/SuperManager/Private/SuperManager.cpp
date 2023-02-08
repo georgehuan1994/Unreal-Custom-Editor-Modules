@@ -44,7 +44,9 @@ TSharedRef<FExtender> FSuperManagerModule::CustomCBMenuExtender(const TArray<FSt
 	{
 		// 第二次绑定：在执行资源路径右键动作时，通过 Extension Hook 插入自定义的菜单项
 		MenuExtender->AddMenuExtension(
-			FName("Delete"), EExtensionHook::After, TSharedPtr<FUICommandList>(),
+			FName("Delete"),
+			EExtensionHook::After,
+			TSharedPtr<FUICommandList>(),	// TODO: 自定义快捷键
 			FMenuExtensionDelegate::CreateRaw(this, &FSuperManagerModule::AddCBMenuEntry));
 
 		// 保存所选路径（可能为多个路径）
@@ -60,7 +62,7 @@ void FSuperManagerModule::AddCBMenuEntry(FMenuBuilder& MenuBuilder)
 	MenuBuilder.AddMenuEntry(
 		FText::FromString(TEXT("Delete Unused Assets")),
 		FText::FromString(TEXT("Safely delete unused assets under folder")),
-		FSlateIcon(),
+		FSlateIcon(),	// TODO: 自定义图标
 		FExecuteAction::CreateRaw(this, &FSuperManagerModule::OnDeleteUnusedAssetsButtonClicked));
 }
 
@@ -76,13 +78,13 @@ void FSuperManagerModule::OnDeleteUnusedAssetsButtonClicked()
 	TArray<FString> AssetsPathNames = UEditorAssetLibrary::ListAssets(FolderPathsSelected[0]);
 	if (AssetsPathNames.Num() == 0)
 	{
-		Debug::ShowMsgDialog(EAppMsgType::Ok, TEXT("No asset found under selected folder"));
+		Debug::ShowMsgDialog(EAppMsgType::Ok, TEXT("No asset found under selected folder"), false);
 		return;
 	}
 
 	const EAppReturnType::Type ConfirmResult =
 	Debug::ShowMsgDialog(EAppMsgType::YesNo,
-		TEXT("A total of ") + FString::FromInt(AssetsPathNames.Num()) +TEXT(" found. \nWould you like to procceed?"));
+		TEXT("A total of ") + FString::FromInt(AssetsPathNames.Num()) + TEXT(" assets need to be checked.\nWould you like to procceed?"), false);
 
 	if (ConfirmResult == EAppReturnType::No)
 	{
@@ -95,7 +97,9 @@ void FSuperManagerModule::OnDeleteUnusedAssetsButtonClicked()
 	for (const FString& AssetPathName : AssetsPathNames)
 	{
 		if (AssetPathName.Contains(TEXT("Developers"))||
-			AssetPathName.Contains(TEXT("Collections")))
+			AssetPathName.Contains(TEXT("Collections"))||
+			AssetPathName.Contains(TEXT("__ExternalActors__"))||
+			AssetPathName.Contains(TEXT("__ExternalObjects__")))
 		{
 			continue;
 		}
