@@ -1,10 +1,13 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "SuperManager.h"
+
+#include "AssetToolsModule.h"
 #include "ContentBrowserModule.h"
 #include "DebugHeader.h"
 #include "EditorAssetLibrary.h"
 #include "ObjectTools.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 
 #define LOCTEXT_NAMESPACE "FSuperManagerModule"
 
@@ -86,6 +89,8 @@ void FSuperManagerModule::OnDeleteUnusedAssetsButtonClicked()
 		return;
 	}
 
+	FixUpRedirectors();
+
 	TArray<FAssetData> UnusedAssetsDataArray;
 	for (const FString& AssetPathName : AssetsPathNames)
 	{
@@ -117,6 +122,41 @@ void FSuperManagerModule::OnDeleteUnusedAssetsButtonClicked()
 	}
 }
 
+void FSuperManagerModule::FixUpRedirectors()
+{
+	TArray<UObjectRedirector*> RedirectorsToFixArray;
+
+	// 通过 FModuleManager 类加载模块，LoadModuleChecked 方法保证了模块不会被重复加载
+	// 使用 AssetRegistryModule 的 GetAssets() 方法来获取所有需要重定向的资产数据
+	FAssetRegistryModule& AssetRegistryModule =
+	FModuleManager::Get().LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+
+	// 创建 GetAssets() 所需的筛选器
+	FARFilter Filter;
+	Filter.bRecursivePaths = true;					// 递归子文件夹
+	Filter.bRecursiveClasses = true;				// 包括派生类
+	Filter.PackagePaths.Add("/Game");
+	Filter.ClassPaths.Add(UObjectRedirector::StaticClass()->GetClassPathName());
+
+	// 需要重定向的资产数据
+	TArray<FAssetData> OutRedirectors;
+	AssetRegistryModule.Get().GetAssets(Filter, OutRedirectors, false);
+
+	// FAssetData.GetAsset() 得到 UObject*, 将其转换成 UObjectRedirector*
+	for (const FAssetData& RedirectorData : OutRedirectors)
+	{
+		if (UObjectRedirector* RedirectorToFix = Cast<UObjectRedirector>(RedirectorData.GetAsset()))
+		{
+			RedirectorsToFixArray.Add(RedirectorToFix);
+		}
+	}
+
+	// 使用 AssetToolsModule 中的 FixupReferencers() 方法来修复重定向器
+	FAssetToolsModule& AssetToolsModule =
+	FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools"));
+
+	AssetToolsModule.Get().FixupReferencers(RedirectorsToFixArray);
+}
 
 #pragma endregion 
 
