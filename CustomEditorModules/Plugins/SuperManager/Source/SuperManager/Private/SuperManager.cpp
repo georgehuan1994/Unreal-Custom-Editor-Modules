@@ -2,6 +2,9 @@
 
 #include "SuperManager.h"
 #include "ContentBrowserModule.h"
+#include "DebugHeader.h"
+#include "EditorAssetLibrary.h"
+#include "ObjectTools.h"
 
 #define LOCTEXT_NAMESPACE "FSuperManagerModule"
 
@@ -40,6 +43,9 @@ TSharedRef<FExtender> FSuperManagerModule::CustomCBMenuExtender(const TArray<FSt
 		MenuExtender->AddMenuExtension(
 			FName("Delete"), EExtensionHook::After, TSharedPtr<FUICommandList>(),
 			FMenuExtensionDelegate::CreateRaw(this, &FSuperManagerModule::AddCBMenuEntry));
+
+		// 保存所选路径（可能为多个路径）
+		FolderPathsSelected = SelectedPaths;
 	}
 	
 	return MenuExtender;
@@ -57,7 +63,58 @@ void FSuperManagerModule::AddCBMenuEntry(FMenuBuilder& MenuBuilder)
 
 void FSuperManagerModule::OnDeleteUnusedAssetsButtonClicked()
 {
-	
+	if (FolderPathsSelected.Num() > 1)
+	{
+		Debug::ShowMsgDialog(EAppMsgType::Ok, TEXT("You can only select 1 folder"));
+		return;
+	}
+
+	// 使用 UEditorAssetLibrary::ListAssets 方法获取所选目录下的资产的路径
+	TArray<FString> AssetsPathNames = UEditorAssetLibrary::ListAssets(FolderPathsSelected[0]);
+	if (AssetsPathNames.Num() == 0)
+	{
+		Debug::ShowMsgDialog(EAppMsgType::Ok, TEXT("No asset found under selected folder"));
+		return;
+	}
+
+	const EAppReturnType::Type ConfirmResult =
+	Debug::ShowMsgDialog(EAppMsgType::YesNo,
+		TEXT("A total of ") + FString::FromInt(AssetsPathNames.Num()) +TEXT(" found. \nWould you like to procceed?"));
+
+	if (ConfirmResult == EAppReturnType::No)
+	{
+		return;
+	}
+
+	TArray<FAssetData> UnusedAssetsDataArray;
+	for (const FString& AssetPathName : AssetsPathNames)
+	{
+		if (AssetPathName.Contains(TEXT("Developers"))||
+			AssetPathName.Contains(TEXT("Collections")))
+		{
+			continue;
+		}
+		if (!UEditorAssetLibrary::DoesAssetExist(AssetPathName))
+		{
+			continue;
+		}
+
+		// 检查资源引用数
+		TArray<FString> AssetReferencers =
+		UEditorAssetLibrary::FindPackageReferencersForAsset(AssetPathName);
+		
+		if (AssetReferencers.Num() == 0)
+		{
+			const FAssetData UnusedAssetData = UEditorAssetLibrary::FindAssetData(AssetPathName);
+			UnusedAssetsDataArray.Add(UnusedAssetData);
+		}
+	}
+
+	if (UnusedAssetsDataArray.Num() > 0)
+	{
+		ObjectTools::DeleteAssets(UnusedAssetsDataArray);
+		Debug::ShowNotifyInfo(TEXT("Deleted " + FString::FromInt(0) + " unused assets"));
+	}
 }
 
 
