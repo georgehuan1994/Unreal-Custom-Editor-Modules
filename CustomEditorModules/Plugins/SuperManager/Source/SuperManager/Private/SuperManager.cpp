@@ -64,6 +64,12 @@ void FSuperManagerModule::AddCBMenuEntry(FMenuBuilder& MenuBuilder)
 		FText::FromString(TEXT("Safely delete unused assets under folder")),
 		FSlateIcon(),	// TODO: 自定义图标
 		FExecuteAction::CreateRaw(this, &FSuperManagerModule::OnDeleteUnusedAssetsButtonClicked));
+
+	MenuBuilder.AddMenuEntry(
+		FText::FromString(TEXT("Delete Empty Folders")),
+		FText::FromString(TEXT("Safely delete unused assets under folder")),
+		FSlateIcon(),
+		FExecuteAction::CreateRaw(this, &FSuperManagerModule::OnDeleteEmptyFoldersButtonClicked));
 }
 
 void FSuperManagerModule::OnDeleteUnusedAssetsButtonClicked()
@@ -124,6 +130,11 @@ void FSuperManagerModule::OnDeleteUnusedAssetsButtonClicked()
 		ObjectTools::DeleteAssets(UnusedAssetsDataArray);
 		Debug::ShowNotifyInfo(TEXT("Deleted " + FString::FromInt(0) + " unused assets"));
 	}
+}
+
+void FSuperManagerModule::OnDeleteEmptyFoldersButtonClicked()
+{
+	Debug::ShowNotifyInfo(TEXT("Deleted " + FString::FromInt(0) + " empty folders"));
 }
 
 void FSuperManagerModule::FixUpRedirectors()
