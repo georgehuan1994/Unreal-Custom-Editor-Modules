@@ -262,7 +262,7 @@ TSharedRef<SDockTab> FSuperManagerModule::OnSpawnAdvanceDeletionTab(const FSpawn
 	[
 		// 构造 SAdvanceDeletionTab，传入参数
 		SNew(SAdvanceDeletionTab)
-		.AssetsDataArray(GetAllAssetDataUnderSelectedFolder())
+		.AssetsDataToStore(GetAllAssetDataUnderSelectedFolder())
 	];
 }
 
