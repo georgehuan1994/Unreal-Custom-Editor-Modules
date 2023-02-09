@@ -15,6 +15,7 @@ void FSuperManagerModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 	InitCBMenuExtention();
+	RegisterAdvanceDeletionTab();
 }
 
 #pragma region ContentBrowserMenuExtention
@@ -70,6 +71,12 @@ void FSuperManagerModule::AddCBMenuEntry(FMenuBuilder& MenuBuilder)
 		FText::FromString(TEXT("Safely delete unused assets under folder")),
 		FSlateIcon(),
 		FExecuteAction::CreateRaw(this, &FSuperManagerModule::OnDeleteEmptyFoldersButtonClicked));
+
+	MenuBuilder.AddMenuEntry(
+		FText::FromString(TEXT("Advance Deletion")),
+		FText::FromString(TEXT("List assets by specify condition in a tab for deleting")),
+		FSlateIcon(),
+		FExecuteAction::CreateRaw(this, &FSuperManagerModule::OnAdvanceDeletionButtonClicked));
 }
 
 void FSuperManagerModule::OnDeleteUnusedAssetsButtonClicked()
@@ -192,6 +199,12 @@ void FSuperManagerModule::OnDeleteEmptyFoldersButtonClicked()
 	}
 }
 
+void FSuperManagerModule::OnAdvanceDeletionButtonClicked()
+{
+	// Invoke
+	FGlobalTabmanager::Get()->TryInvokeTab(FName("AdvanceDeletion"));
+}
+
 void FSuperManagerModule::FixUpRedirectors()
 {
 	TArray<UObjectRedirector*> RedirectorsToFixArray;
@@ -226,6 +239,25 @@ void FSuperManagerModule::FixUpRedirectors()
 	FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools"));
 
 	AssetToolsModule.Get().FixupReferencers(RedirectorsToFixArray);
+}
+
+#pragma endregion
+
+
+#pragma region CustomEditorTab
+
+void FSuperManagerModule::RegisterAdvanceDeletionTab()
+{
+	// 获取 FGlobalTabmanager 的共享引用，通过 RegisterNomadTabSpawner 方法注册一个 Editor Tab
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
+		FName("AdvanceDeletion"),
+		FOnSpawnTab::CreateRaw(this, &FSuperManagerModule::OnSpawnAdvanceDeletionTab))
+	.SetDisplayName(FText::FromString("Advance Deletion"));
+}
+
+TSharedRef<SDockTab> FSuperManagerModule::OnSpawnAdvanceDeletionTab(const FSpawnTabArgs& TabArgs)
+{
+	return SNew(SDockTab).TabRole(ETabRole::NomadTab);
 }
 
 #pragma endregion 
