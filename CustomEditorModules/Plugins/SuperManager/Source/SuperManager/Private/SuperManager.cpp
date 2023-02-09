@@ -262,8 +262,32 @@ TSharedRef<SDockTab> FSuperManagerModule::OnSpawnAdvanceDeletionTab(const FSpawn
 	[
 		// 构造 SAdvanceDeletionTab，传入参数
 		SNew(SAdvanceDeletionTab)
-		.TestString(TEXT("I am passing data"))
+		.AssetsDataArray(GetAllAssetDataUnderSelectedFolder())
 	];
+}
+
+TArray<TSharedPtr<FAssetData>> FSuperManagerModule::GetAllAssetDataUnderSelectedFolder()
+{
+	TArray<TSharedPtr<FAssetData>> AvailableAssetsData;
+	TArray<FString> AssetsPathNames = UEditorAssetLibrary::ListAssets(FolderPathsSelected[0]);
+	for (const FString& AssetPathName : AssetsPathNames)
+	{
+		if (AssetPathName.Contains(TEXT("Developers"))||
+			AssetPathName.Contains(TEXT("Collections"))||
+			AssetPathName.Contains(TEXT("__ExternalActors__"))||
+			AssetPathName.Contains(TEXT("__ExternalObjects__")))
+		{
+			continue;
+		}
+		if (!UEditorAssetLibrary::DoesAssetExist(AssetPathName))
+		{
+			continue;
+		}
+
+		const FAssetData Data = UEditorAssetLibrary::FindAssetData(AssetPathName);
+		AvailableAssetsData.Add(MakeShared<FAssetData>(Data));
+	}
+	return AvailableAssetsData;
 }
 
 #pragma endregion 

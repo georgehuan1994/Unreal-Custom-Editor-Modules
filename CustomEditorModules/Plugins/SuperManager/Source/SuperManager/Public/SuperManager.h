@@ -30,8 +30,12 @@ private:
 #pragma endregion
 
 #pragma region CustomEditorTab
+	
 	void RegisterAdvanceDeletionTab();
 
 	TSharedRef<SDockTab> OnSpawnAdvanceDeletionTab(const FSpawnTabArgs& TabArgs);
+
+	TArray<TSharedPtr<FAssetData>> GetAllAssetDataUnderSelectedFolder();
+
 #pragma endregion 
 };
