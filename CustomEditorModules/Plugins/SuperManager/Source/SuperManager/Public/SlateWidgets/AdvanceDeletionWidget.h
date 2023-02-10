@@ -18,7 +18,7 @@ public:
 
 private:
 	TArray<TSharedPtr<FAssetData>> StoredAssetsData;
-	TArray<TSharedPtr<FAssetData>> DisplayedAssetsDate;
+	TArray<TSharedPtr<FAssetData>> DisplayedAssetsData;
 	TArray<TSharedPtr<FAssetData>> AssetDataToDeleteArray;
 	
 	TArray<TSharedRef<SCheckBox>> CheckBoxesArray;

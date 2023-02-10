@@ -7,6 +7,7 @@
 
 #define ListAll TEXT("List All Available Assets")
 #define ListUnused TEXT("List Unused Assets")
+#define ListSameName TEXT("List Assets With Same Name")
 
 /**
  * @brief 窗体构造函数
@@ -18,13 +19,14 @@ void SAdvanceDeletionTab::Construct(const FArguments& InArgs)
 
 	// 接收参数
 	StoredAssetsData = InArgs._AssetsDataToStore;
-	DisplayedAssetsDate = StoredAssetsData;
+	DisplayedAssetsData = StoredAssetsData;
 	
 	CheckBoxesArray.Empty();
 	AssetDataToDeleteArray.Empty();
 
 	ComboBoxSourceItems.Add(MakeShared<FString>(ListAll));
 	ComboBoxSourceItems.Add(MakeShared<FString>(ListUnused));
+	ComboBoxSourceItems.Add(MakeShared<FString>(ListSameName));
 
 	FSlateFontInfo TitleTextFont = FCoreStyle::Get().GetFontStyle(FName("EmbossedText"));
 	TitleTextFont.Size = 30;
@@ -105,7 +107,7 @@ TSharedRef<SListView<TSharedPtr<FAssetData>>> SAdvanceDeletionTab::ConstructAsse
 	ConstructedAssetListView =
 	SNew(SListView<TSharedPtr<FAssetData>>)
 	.ItemHeight(24.f)
-	.ListItemsSource(&DisplayedAssetsDate)
+	.ListItemsSource(&DisplayedAssetsData)
 	.OnGenerateRow(this, &SAdvanceDeletionTab::OnGenerateRowForList);
 
 	return ConstructedAssetListView.ToSharedRef();
@@ -117,7 +119,7 @@ TSharedRef<SListView<TSharedPtr<FAssetData>>> SAdvanceDeletionTab::ConstructAsse
 void SAdvanceDeletionTab::RefreshAssetListView()
 {
 	AssetDataToDeleteArray.Empty();
-	CheckBoxesArray.Empty();
+	// CheckBoxesArray.Empty();
 	
 	if (ConstructedAssetListView.IsValid())
 	{
@@ -327,6 +329,11 @@ FReply SAdvanceDeletionTab::OnDeleteAllButtonClicked()
 			{
 				StoredAssetsData.Remove(DeletedData);
 			}
+
+			if (DisplayedAssetsData.Contains(DeletedData))
+			{
+				DisplayedAssetsData.Remove(DeletedData);
+			}
 		}
 	}
 
@@ -426,14 +433,19 @@ void SAdvanceDeletionTab::OnComboSelectionChanged(TSharedPtr<FString> SelectedOp
 	FSuperManagerModule& SuperManagerModule =
 		FModuleManager::LoadModuleChecked<FSuperManagerModule>(TEXT("SuperManager"));
 	
-	// 传数据到其他模块进行筛选
 	if (*SelectedOption.Get() == ListAll)
 	{
-		
+		DisplayedAssetsData = StoredAssetsData;
+		RefreshAssetListView();
 	}
 	else if(*SelectedOption.Get() == ListUnused)
 	{
-		SuperManagerModule.ListUnusedAssetsForAssetList(StoredAssetsData, DisplayedAssetsDate);
+		SuperManagerModule.ListUnusedAssetsForAssetList(StoredAssetsData, DisplayedAssetsData);
+		RefreshAssetListView();
+	}
+	else if(*SelectedOption.Get() == ListSameName)
+	{
+		SuperManagerModule.ListSameNameAssetsForAssetList(StoredAssetsData, DisplayedAssetsData);
 		RefreshAssetListView();
 	}
 }
