@@ -40,6 +40,7 @@ private:
 	TSharedRef<STextBlock> ConstructTextForRowWidget(const FString& TextContent, const FSlateFontInfo& FontToUse);
 	TSharedRef<SButton> ConstructButtonForRowWidget(const TSharedPtr<FAssetData>& AssetDataToDisplay);
 	FReply OnDeleteButtonClicked(TSharedPtr<FAssetData> ClickedAssetData);
+	void OnRowWidgetMouseButtonClicked(TSharedPtr<FAssetData> ClickedData);
 
 #pragma endregion
 
