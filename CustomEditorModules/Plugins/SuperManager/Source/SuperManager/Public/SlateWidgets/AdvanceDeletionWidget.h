@@ -39,6 +39,9 @@ private:
 
 #pragma endregion
 
+
+#pragma region TabButtons
+	
 	TSharedRef<SButton> ConstructDeleteAllButton();
 	TSharedRef<SButton> ConstructSelectAllButton();
 	TSharedRef<SButton> ConstructDeselectAllButton();
@@ -48,4 +51,8 @@ private:
 	FReply OnDeselectAllButtonClicked();
 
 	TSharedRef<STextBlock> ConstructTextForTabButtons(const FString& TextContent);
+
+#pragma endregion
+
+	TArray<TSharedPtr<FAssetData>> AssetDataToDeleteArray;
 };

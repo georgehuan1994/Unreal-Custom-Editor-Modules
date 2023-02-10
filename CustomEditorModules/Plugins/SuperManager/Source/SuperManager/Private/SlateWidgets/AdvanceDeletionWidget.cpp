@@ -102,6 +102,8 @@ TSharedRef<SListView<TSharedPtr<FAssetData>>> SAdvanceDeletionTab::ConstructAsse
  */
 void SAdvanceDeletionTab::RefreshAssetListView()
 {
+	AssetDataToDeleteArray.Empty();
+	
 	if (ConstructedAssetListView.IsValid())
 	{
 		ConstructAssetListView()->RebuildList();
@@ -185,10 +187,13 @@ void SAdvanceDeletionTab::OnCheckBoxStateChanged(ECheckBoxState NewState, TShare
 	switch (NewState)
 	{
 	case ECheckBoxState::Unchecked:
-		Debug::PrintLog(AssetData->AssetName.ToString() + TEXT(" is unchecked"));
+		if (AssetDataToDeleteArray.Contains(AssetData))
+		{
+			AssetDataToDeleteArray.Remove(AssetData);
+		}
 		break;
 	case ECheckBoxState::Checked:
-		Debug::PrintLog(AssetData->AssetName.ToString() + TEXT(" is checked"));
+		AssetDataToDeleteArray.AddUnique(AssetData);
 		break;
 	case ECheckBoxState::Undetermined: break;
 	default: ;
@@ -241,6 +246,8 @@ FReply SAdvanceDeletionTab::OnDeleteButtonClicked(TSharedPtr<FAssetData> Clicked
 #pragma endregion
 
 
+#pragma region TabButtons
+
 TSharedRef<SButton> SAdvanceDeletionTab::ConstructDeleteAllButton()
 {
 	TSharedRef<SButton> DeleteAllButton =
@@ -279,6 +286,35 @@ TSharedRef<SButton> SAdvanceDeletionTab::ConstructDeselectAllButton()
 
 FReply SAdvanceDeletionTab::OnDeleteAllButtonClicked()
 {
+	if (AssetDataToDeleteArray.Num() == 0)
+	{
+		Debug::ShowMsgDialog(EAppMsgType::Ok, TEXT("No asset currently selected"));
+		return FReply::Handled();
+	}
+
+	TArray<FAssetData> AssetDataToDelete;
+	for (const TSharedPtr<FAssetData>& Data : AssetDataToDeleteArray)
+	{
+		AssetDataToDelete.Add(*Data.Get());
+	}
+
+	FSuperManagerModule& SuperManagerModule =
+	FModuleManager::LoadModuleChecked<FSuperManagerModule>(TEXT("SuperManager"));
+
+	bool bAssetsDeleted = SuperManagerModule.DelecteMultipleAssetsForAssetList(AssetDataToDelete);
+	if (bAssetsDeleted)
+	{
+		for (const TSharedPtr<FAssetData>& DeletedData : AssetDataToDeleteArray)
+		{
+			if (StoredAssetsData.Contains(DeletedData))
+			{
+				StoredAssetsData.Remove(DeletedData);
+			}
+		}
+	}
+
+	RefreshAssetListView();
+	
 	return FReply::Handled();
 }
 
@@ -298,12 +334,14 @@ TSharedRef<STextBlock> SAdvanceDeletionTab::ConstructTextForTabButtons(const FSt
 	ButtonTextFont.Size = 10;
 	
 	TSharedRef<STextBlock> ConstructedTextBlock =
-		SNew(STextBlock)
+	SNew(STextBlock)
 	.Text(FText::FromString(TextContent))
 	.Font(ButtonTextFont)
 	.Justification(ETextJustify::Center);
 
 	return ConstructedTextBlock;
 }
+
+#pragma endregion
 
 
