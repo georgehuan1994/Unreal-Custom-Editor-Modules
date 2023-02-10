@@ -38,17 +38,14 @@ void SAdvanceDeletionTab::Construct(const FArguments& InArgs)
 			SNew(SHorizontalBox)
 		]
 
-		// Asset list view
+		// Asset list scroll view
 		+SVerticalBox::Slot()
 		.VAlign(VAlign_Fill)
 		[
 			SNew(SScrollBox)
 			+SScrollBox::Slot()
 			[
-				SNew(SListView<TSharedPtr<FAssetData>>)
-				.ItemHeight(24.f)
-				.ListItemsSource(&StoredAssetsData)
-				.OnGenerateRow(this, &SAdvanceDeletionTab::OnGenerateRowForList)
+				ConstructAssetListView()
 			]
 		]
 
@@ -59,6 +56,28 @@ void SAdvanceDeletionTab::Construct(const FArguments& InArgs)
 			SNew(SHorizontalBox)
 		]
 	];
+}
+
+TSharedRef<SListView<TSharedPtr<FAssetData>>> SAdvanceDeletionTab::ConstructAssetListView()
+{
+	ConstructedAssetListView =
+	SNew(SListView<TSharedPtr<FAssetData>>)
+	.ItemHeight(24.f)
+	.ListItemsSource(&StoredAssetsData)
+	.OnGenerateRow(this, &SAdvanceDeletionTab::OnGenerateRowForList);
+
+	return ConstructedAssetListView.ToSharedRef();
+}
+
+/**
+ * @brief 刷新资源列表视图
+ */
+void SAdvanceDeletionTab::RefreshAssetListView()
+{
+	if (ConstructedAssetListView.IsValid())
+	{
+		ConstructAssetListView()->RebuildList();
+	}
 }
 
 TSharedRef<ITableRow> SAdvanceDeletionTab::OnGenerateRowForList(TSharedPtr<FAssetData> AssetDataToDisplay, const TSharedRef<STableViewBase>& OwnerTable)
@@ -178,9 +197,13 @@ FReply SAdvanceDeletionTab::OnDeleteButtonClicked(TSharedPtr<FAssetData> Clicked
 	// 刷新列表
 	if (bAssetDeleted)
 	{
+		if (StoredAssetsData.Contains(ClickedAssetData))
+		{
+			StoredAssetsData.Remove(ClickedAssetData);
+		}
 		
+		RefreshAssetListView();
 	}
 	
-	// Debug::ShowNotifyInfo(ClickedAssetData->AssetName.ToString() + TEXT(" is clicked"));
 	return FReply::Handled();
 }

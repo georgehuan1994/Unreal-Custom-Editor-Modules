@@ -18,6 +18,10 @@ public:
 
 private:
 	TArray<TSharedPtr<FAssetData>> StoredAssetsData;
+
+	TSharedRef<SListView<TSharedPtr<FAssetData>>> ConstructAssetListView();
+	TSharedPtr<SListView<TSharedPtr<FAssetData>>> ConstructedAssetListView;
+	void RefreshAssetListView();
 	
 	FSlateFontInfo GetEmbossedTextFont() const
 	{
