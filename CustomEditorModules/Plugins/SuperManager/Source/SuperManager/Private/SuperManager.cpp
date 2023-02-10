@@ -290,7 +290,24 @@ TArray<TSharedPtr<FAssetData>> FSuperManagerModule::GetAllAssetDataUnderSelected
 	return AvailableAssetsData;
 }
 
-#pragma endregion 
+#pragma endregion
+
+
+#pragma region ProccessDataForAdvanceDelectionTab
+
+bool FSuperManagerModule::DeleteSingleAssetForAssetList(const FAssetData& AssetDataToDelete)
+{
+	TArray<FAssetData> AssetDataForDeleteArray;
+	AssetDataForDeleteArray.Add(AssetDataToDelete);
+	
+	if (ObjectTools::DeleteAssets(AssetDataForDeleteArray) > 0)
+	{
+		return true;
+	}
+	return false;
+}
+
+#pragma endregion
 
 
 void FSuperManagerModule::ShutdownModule()

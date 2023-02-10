@@ -3,6 +3,7 @@
 
 #include "SlateWidgets/AdvanceDeletionWidget.h"
 #include "DebugHeader.h"
+#include "SuperManager.h"
 #include "Widgets/Layout/SScrollBox.h"
 
 void SAdvanceDeletionTab::Construct(const FArguments& InArgs)
@@ -167,6 +168,19 @@ TSharedRef<SButton> SAdvanceDeletionTab::ConstructButtonForRowWidget(const TShar
 
 FReply SAdvanceDeletionTab::OnDeleteButtonClicked(TSharedPtr<FAssetData> ClickedAssetData)
 {
-	Debug::ShowNotifyInfo(ClickedAssetData->AssetName.ToString() + TEXT(" is clicked"));
+	FSuperManagerModule& SuperManagerModule =
+	FModuleManager::LoadModuleChecked<FSuperManagerModule>(TEXT("SuperManager"));
+
+	// 将 TSharedPtr<FAssetData> 解引用为 FAssetData&
+	const bool bAssetDeleted =
+	SuperManagerModule.DeleteSingleAssetForAssetList(*ClickedAssetData.Get());
+
+	// 刷新列表
+	if (bAssetDeleted)
+	{
+		
+	}
+	
+	// Debug::ShowNotifyInfo(ClickedAssetData->AssetName.ToString() + TEXT(" is clicked"));
 	return FReply::Handled();
 }
