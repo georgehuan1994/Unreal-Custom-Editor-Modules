@@ -6,6 +6,7 @@
 #include "Widgets/Layout/SScrollBox.h"
 
 #define ListAll TEXT("List All Available Assets")
+#define ListUnused TEXT("List Unused Assets")
 
 /**
  * @brief 窗体构造函数
@@ -17,11 +18,13 @@ void SAdvanceDeletionTab::Construct(const FArguments& InArgs)
 
 	// 接收参数
 	StoredAssetsData = InArgs._AssetsDataToStore;
+	DisplayedAssetsDate = StoredAssetsData;
 	
 	CheckBoxesArray.Empty();
 	AssetDataToDeleteArray.Empty();
 
 	ComboBoxSourceItems.Add(MakeShared<FString>(ListAll));
+	ComboBoxSourceItems.Add(MakeShared<FString>(ListUnused));
 
 	FSlateFontInfo TitleTextFont = FCoreStyle::Get().GetFontStyle(FName("EmbossedText"));
 	TitleTextFont.Size = 30;
@@ -102,7 +105,7 @@ TSharedRef<SListView<TSharedPtr<FAssetData>>> SAdvanceDeletionTab::ConstructAsse
 	ConstructedAssetListView =
 	SNew(SListView<TSharedPtr<FAssetData>>)
 	.ItemHeight(24.f)
-	.ListItemsSource(&StoredAssetsData)
+	.ListItemsSource(&DisplayedAssetsDate)
 	.OnGenerateRow(this, &SAdvanceDeletionTab::OnGenerateRowForList);
 
 	return ConstructedAssetListView.ToSharedRef();
@@ -315,7 +318,7 @@ FReply SAdvanceDeletionTab::OnDeleteAllButtonClicked()
 	FSuperManagerModule& SuperManagerModule =
 	FModuleManager::LoadModuleChecked<FSuperManagerModule>(TEXT("SuperManager"));
 
-	bool bAssetsDeleted = SuperManagerModule.DelecteMultipleAssetsForAssetList(AssetDataToDelete);
+	bool bAssetsDeleted = SuperManagerModule.DeleteMultipleAssetsForAssetList(AssetDataToDelete);
 	if (bAssetsDeleted)
 	{
 		for (const TSharedPtr<FAssetData>& DeletedData : AssetDataToDeleteArray)
@@ -417,8 +420,22 @@ TSharedRef<SWidget> SAdvanceDeletionTab::OnGenerateComboContent(TSharedPtr<FStri
 
 void SAdvanceDeletionTab::OnComboSelectionChanged(TSharedPtr<FString> SelectedOption, ESelectInfo::Type InSelectInfo)
 {
-	Debug::ShowNotifyInfo(TEXT("On ComboSelection Changed"));
+	// FString SelectedOptionText = *SelectedOption.Get();
 	ComboDisplayTextBlock->SetText(FText::FromString(*SelectedOption.Get()));
+
+	FSuperManagerModule& SuperManagerModule =
+		FModuleManager::LoadModuleChecked<FSuperManagerModule>(TEXT("SuperManager"));
+	
+	// 传数据到其他模块进行筛选
+	if (*SelectedOption.Get() == ListAll)
+	{
+		
+	}
+	else if(*SelectedOption.Get() == ListUnused)
+	{
+		SuperManagerModule.ListUnusedAssetsForAssetList(StoredAssetsData, DisplayedAssetsDate);
+		RefreshAssetListView();
+	}
 }
 
 #pragma endregion
