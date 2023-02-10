@@ -2,7 +2,6 @@
 
 
 #include "SlateWidgets/AdvanceDeletionWidget.h"
-
 #include "DebugHeader.h"
 #include "Widgets/Layout/SScrollBox.h"
 
@@ -75,9 +74,10 @@ TSharedRef<ITableRow> SAdvanceDeletionTab::OnGenerateRowForList(TSharedPtr<FAsse
 	AssetClassNameFont.Size = 10;
 
 	FSlateFontInfo AssetNameFont = GetEmbossedTextFont();
-	AssetNameFont.Size = 15;
+	AssetNameFont.Size = 10;
 	
-	TSharedRef<STableRow<TSharedPtr<FAssetData>>> ListViewWidget = SNew(STableRow<TSharedPtr<FAssetData>>, OwnerTable)
+	TSharedRef<STableRow<TSharedPtr<FAssetData>>> ListViewRowWidget =
+	SNew(STableRow<TSharedPtr<FAssetData>>, OwnerTable).Padding(FMargin(3.f))
 	[
 		
 		SNew(SHorizontalBox)
@@ -95,21 +95,29 @@ TSharedRef<ITableRow> SAdvanceDeletionTab::OnGenerateRowForList(TSharedPtr<FAsse
 		+SHorizontalBox::Slot()
 		.HAlign(HAlign_Center)
 		.VAlign(VAlign_Fill)
-		.FillWidth(.2f)
+		.FillWidth(.5f)
 		[
 			ConstructTextForRowWidget(DisplayAssetClassName, AssetClassNameFont)
 		]
 		
 		// Asset name
 		+SHorizontalBox::Slot()
+		.HAlign(HAlign_Left)
+		.VAlign(VAlign_Fill)
 		[
 			ConstructTextForRowWidget(DisplayAssetName, AssetNameFont)
 		]
 
 		// Button
+		+SHorizontalBox::Slot()
+		.HAlign(HAlign_Right)
+		.VAlign(VAlign_Fill)
+		[
+			ConstructButtonForRowWidget(AssetDataToDisplay)
+		]
 	];
 
-	return ListViewWidget;
+	return ListViewRowWidget;
 }
 
 TSharedRef<SCheckBox> SAdvanceDeletionTab::ConstructCheckBox(const TSharedPtr<FAssetData>& AssetDataToDisplay)
@@ -147,4 +155,18 @@ TSharedRef<STextBlock> SAdvanceDeletionTab::ConstructTextForRowWidget(const FStr
 	.ColorAndOpacity(FColor::White);
 	
 	return ConstructedTextBlock;
+}
+
+TSharedRef<SButton> SAdvanceDeletionTab::ConstructButtonForRowWidget(const TSharedPtr<FAssetData>& AssetDataToDisplay)
+{
+	TSharedRef<SButton> ConstructedButton = SNew(SButton)
+	.Text(FText::FromString(TEXT("Delete")))
+	.OnClicked(this, &SAdvanceDeletionTab::OnDeleteButtonClicked, AssetDataToDisplay);
+	return ConstructedButton;
+}
+
+FReply SAdvanceDeletionTab::OnDeleteButtonClicked(TSharedPtr<FAssetData> ClickedAssetData)
+{
+	Debug::ShowNotifyInfo(ClickedAssetData->AssetName.ToString() + TEXT(" is clicked"));
+	return FReply::Handled();
 }
