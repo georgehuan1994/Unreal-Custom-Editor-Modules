@@ -18,6 +18,9 @@ public:
 
 private:
 	TArray<TSharedPtr<FAssetData>> StoredAssetsData;
+	TArray<TSharedPtr<FAssetData>> AssetDataToDeleteArray;
+	
+	TArray<TSharedRef<SCheckBox>> CheckBoxesArray;
 
 	TSharedRef<SListView<TSharedPtr<FAssetData>>> ConstructAssetListView();
 	TSharedPtr<SListView<TSharedPtr<FAssetData>>> ConstructedAssetListView;
@@ -53,6 +56,4 @@ private:
 	TSharedRef<STextBlock> ConstructTextForTabButtons(const FString& TextContent);
 
 #pragma endregion
-
-	TArray<TSharedPtr<FAssetData>> AssetDataToDeleteArray;
 };
