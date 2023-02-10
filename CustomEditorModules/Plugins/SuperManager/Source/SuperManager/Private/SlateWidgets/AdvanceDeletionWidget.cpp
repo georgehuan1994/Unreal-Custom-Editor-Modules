@@ -1,10 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "SlateWidgets/AdvanceDeletionWidget.h"
 #include "DebugHeader.h"
 #include "SuperManager.h"
 #include "Widgets/Layout/SScrollBox.h"
+
+#define ListAll TEXT("List All Available Assets")
 
 /**
  * @brief 窗体构造函数
@@ -16,8 +17,11 @@ void SAdvanceDeletionTab::Construct(const FArguments& InArgs)
 
 	// 接收参数
 	StoredAssetsData = InArgs._AssetsDataToStore;
+	
 	CheckBoxesArray.Empty();
 	AssetDataToDeleteArray.Empty();
+
+	ComboBoxSourceItems.Add(MakeShared<FString>(ListAll));
 
 	FSlateFontInfo TitleTextFont = FCoreStyle::Get().GetFontStyle(FName("EmbossedText"));
 	TitleTextFont.Size = 30;
@@ -42,6 +46,11 @@ void SAdvanceDeletionTab::Construct(const FArguments& InArgs)
 		.AutoHeight()
 		[
 			SNew(SHorizontalBox)
+			+SHorizontalBox::Slot()
+			.AutoWidth()
+			[
+				ConstructComboBox()
+			]
 		]
 
 		// Asset list scroll view
@@ -371,6 +380,45 @@ TSharedRef<STextBlock> SAdvanceDeletionTab::ConstructTextForTabButtons(const FSt
 	.Justification(ETextJustify::Center);
 
 	return ConstructedTextBlock;
+}
+
+#pragma endregion
+
+
+#pragma region ComboBoxForListingCondition
+
+TSharedRef<SComboBox<TSharedPtr<FString>>> SAdvanceDeletionTab::ConstructComboBox()
+{
+	TSharedRef<SComboBox<TSharedPtr<FString>>> ConstructedComboBox =
+		SNew(SComboBox<TSharedPtr<FString>>)
+	.OptionsSource(&ComboBoxSourceItems)
+	.OnGenerateWidget(this, &SAdvanceDeletionTab::OnGenerateComboContent)
+	.OnSelectionChanged(this, &SAdvanceDeletionTab::OnComboSelectionChanged)
+	[
+		SAssignNew(ComboDisplayTextBlock, STextBlock)
+		.Text(FText::FromString(TEXT("List Assets Option")))
+	];
+	
+	return ConstructedComboBox;
+}
+
+/**
+ * @brief 定义下拉项的类型
+ * @param SourceItem 下拉选项文本
+ * @return 
+ */
+TSharedRef<SWidget> SAdvanceDeletionTab::OnGenerateComboContent(TSharedPtr<FString> SourceItem)
+{
+	TSharedRef<STextBlock> ConstructedComboText =
+	SNew(STextBlock).Text(FText::FromString(*SourceItem.Get()));
+
+	return ConstructedComboText;
+}
+
+void SAdvanceDeletionTab::OnComboSelectionChanged(TSharedPtr<FString> SelectedOption, ESelectInfo::Type InSelectInfo)
+{
+	Debug::ShowNotifyInfo(TEXT("On ComboSelection Changed"));
+	ComboDisplayTextBlock->SetText(FText::FromString(*SelectedOption.Get()));
 }
 
 #pragma endregion
