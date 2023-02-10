@@ -10,6 +10,7 @@ class SAdvanceDeletionTab : public SCompoundWidget
 
 	// 定义 Widget 参数的类型和名称，在构造时传入
 	SLATE_ARGUMENT(TArray<TSharedPtr<FAssetData>>, AssetsDataToStore)
+	SLATE_ARGUMENT(FString, CurrentSelectedFolder)
 	
 	SLATE_END_ARGS()
 
@@ -67,6 +68,8 @@ private:
 	TSharedRef<SWidget> OnGenerateComboContent(TSharedPtr<FString> SourceItem);
 	void OnComboSelectionChanged(TSharedPtr<FString> SelectedOption, ESelectInfo::Type InSelectInfo);
 	TSharedPtr<STextBlock> ComboDisplayTextBlock;
+
+	TSharedRef<STextBlock> ConstructComboHelpTexts(const FString& TextContent, ETextJustify::Type TextJustify);
 
 #pragma endregion
 };
