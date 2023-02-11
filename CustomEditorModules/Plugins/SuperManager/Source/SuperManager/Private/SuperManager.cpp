@@ -1,7 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "SuperManager.h"
-
 #include "AssetToolsModule.h"
 #include "ContentBrowserModule.h"
 #include "DebugHeader.h"
@@ -9,12 +8,14 @@
 #include "ObjectTools.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "SlateWidgets/AdvanceDeletionWidget.h"
+#include "CustomStyle/SuperManagerStyle.h"
 
 #define LOCTEXT_NAMESPACE "FSuperManagerModule"
 
 void FSuperManagerModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	FSuperManagerStyle::InitializeIcons();
 	InitCBMenuExtention();
 	RegisterAdvanceDeletionTab();
 }
@@ -64,19 +65,22 @@ void FSuperManagerModule::AddCBMenuEntry(FMenuBuilder& MenuBuilder)
 	MenuBuilder.AddMenuEntry(
 		FText::FromString(TEXT("Delete Unused Assets")),
 		FText::FromString(TEXT("Safely delete unused assets under folder")),
-		FSlateIcon(),	// TODO: 自定义图标
+		// FSlateIcon(),
+		FSlateIcon(FSuperManagerStyle::GetStyleSetName(), "ContentBrowser.DeleteUnusedAssets"),
 		FExecuteAction::CreateRaw(this, &FSuperManagerModule::OnDeleteUnusedAssetsButtonClicked));
 
 	MenuBuilder.AddMenuEntry(
 		FText::FromString(TEXT("Delete Empty Folders")),
 		FText::FromString(TEXT("Safely delete unused assets under folder")),
-		FSlateIcon(),
+		// FSlateIcon(),
+		FSlateIcon(FSuperManagerStyle::GetStyleSetName(), "ContentBrowser.DeleteEmptyFolders"),
 		FExecuteAction::CreateRaw(this, &FSuperManagerModule::OnDeleteEmptyFoldersButtonClicked));
 
 	MenuBuilder.AddMenuEntry(
 		FText::FromString(TEXT("Advance Deletion")),
 		FText::FromString(TEXT("List assets by specify condition in a tab for deleting")),
-		FSlateIcon(),
+		// FSlateIcon(),
+		FSlateIcon(FSuperManagerStyle::GetStyleSetName(), "ContentBrowser.AdvanceDeletion"),
 		FExecuteAction::CreateRaw(this, &FSuperManagerModule::OnAdvanceDeletionButtonClicked));
 }
 
@@ -254,7 +258,8 @@ void FSuperManagerModule::RegisterAdvanceDeletionTab()
 	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
 		FName("AdvanceDeletion"),
 		FOnSpawnTab::CreateRaw(this, &FSuperManagerModule::OnSpawnAdvanceDeletionTab))
-	.SetDisplayName(FText::FromString("Advance Deletion"));
+	.SetDisplayName(FText::FromString("Advance Deletion"))
+	.SetIcon(FSlateIcon(FSuperManagerStyle::GetStyleSetName(), "ContentBrowser.AdvanceDeletion"));
 }
 
 TSharedRef<SDockTab> FSuperManagerModule::OnSpawnAdvanceDeletionTab(const FSpawnTabArgs& TabArgs)
@@ -383,6 +388,7 @@ void FSuperManagerModule::ShutdownModule()
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(FName("AdvanceDeletion"));
+	FSuperManagerStyle::Shutdown();
 }
 
 #undef LOCTEXT_NAMESPACE

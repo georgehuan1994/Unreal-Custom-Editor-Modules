@@ -36,7 +36,8 @@ public class SuperManager : ModuleRules
 				"AssetTools",
 				"ContentBrowser",
 				"InputCore",
-				"Projects"
+				"Projects",
+				// "CustomEditorModules",
 			}
 		);
 
