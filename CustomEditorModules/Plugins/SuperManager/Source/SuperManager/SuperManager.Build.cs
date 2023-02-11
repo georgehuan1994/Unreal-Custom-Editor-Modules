@@ -35,7 +35,8 @@ public class SuperManager : ModuleRules
 				"UnrealEd",		// ObjectTools
 				"AssetTools",
 				"ContentBrowser",
-				"InputCore"
+				"InputCore",
+				"Projects"
 			}
 		);
 
