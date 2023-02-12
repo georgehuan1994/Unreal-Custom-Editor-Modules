@@ -2,9 +2,12 @@
 
 
 #include "QuickMaterialCreationWidget.h"
+
+#include "AssetToolsModule.h"
 #include "DebugHeader.h"
 #include "EditorAssetLibrary.h"
 #include "EditorUtilityLibrary.h"
+#include "Factories/MaterialFactoryNew.h"
 
 #pragma region QuickMaterialCreationCore
 
@@ -28,10 +31,15 @@ void UQuickMaterialCreationWidget::CreateMaterialFromSelectedTextures()
 	TArray<UTexture2D*> SelectedTexturesArray;
 	FString SelectedTextureFolderPath;
 
-	if (ProcessSelectedData(SelectedAssetData, SelectedTexturesArray, SelectedTextureFolderPath)) return;
+	if (!ProcessSelectedData(SelectedAssetData, SelectedTexturesArray, SelectedTextureFolderPath)) return;
 	if (CheckIsNameUsed(SelectedTextureFolderPath, MaterialName)) return;
 	
-	
+	UMaterial* CreatedMaterial = CreateMaterialAsset(MaterialName, SelectedTextureFolderPath);
+	if (!CreatedMaterial)
+	{
+		Debug::ShowMsgDialog(EAppMsgType::Ok, TEXT("Failed to create material"));
+		return;
+	}
 }
 
 #pragma endregion
@@ -44,6 +52,7 @@ void UQuickMaterialCreationWidget::CreateMaterialFromSelectedTextures()
  * @param SelectedDataToProcess 资产数据
  * @param OutSelectedTexturesArray 纹理数据
  * @param OutSelectedTexturePackagePath 纹理所属文件夹路径
+ * @return 
  */
 bool UQuickMaterialCreationWidget::ProcessSelectedData(const TArray<FAssetData>& SelectedDataToProcess,
 	TArray<UTexture2D*>& OutSelectedTexturesArray, FString& OutSelectedTexturePackagePath)
@@ -94,6 +103,7 @@ bool UQuickMaterialCreationWidget::ProcessSelectedData(const TArray<FAssetData>&
  * @brief 检查文件夹内是否已有同名材质
  * @param FolderPathToCheck 文件夹路径
  * @param MaterialNameToCheck 材质名
+ * @return 
  */
 bool UQuickMaterialCreationWidget::CheckIsNameUsed(const FString& FolderPathToCheck, const FString& MaterialNameToCheck)
 {
@@ -108,6 +118,21 @@ bool UQuickMaterialCreationWidget::CheckIsNameUsed(const FString& FolderPathToCh
 		}
 	}
 	return false;
+}
+
+/**
+ * @brief 创建材质资产
+ * @param NameOfMaterial 材质名
+ * @param PathToPutMaterial 材质存放路径
+ * @return 
+ */
+UMaterial* UQuickMaterialCreationWidget::CreateMaterialAsset(const FString& NameOfMaterial, const FString& PathToPutMaterial)
+{
+	const FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools"));
+	UMaterialFactoryNew* MaterialFactory = NewObject<UMaterialFactoryNew>();
+	UObject* CreatedObject = AssetToolsModule.Get().CreateAsset(NameOfMaterial, PathToPutMaterial, UMaterial::StaticClass(), MaterialFactory);
+
+	return Cast<UMaterial>(CreatedObject);
 }
 
 #pragma endregion
