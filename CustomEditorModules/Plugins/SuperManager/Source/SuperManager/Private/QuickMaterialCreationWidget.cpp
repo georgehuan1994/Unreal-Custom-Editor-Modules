@@ -2,7 +2,6 @@
 
 
 #include "QuickMaterialCreationWidget.h"
-
 #include "AssetToolsModule.h"
 #include "DebugHeader.h"
 #include "EditorAssetLibrary.h"
