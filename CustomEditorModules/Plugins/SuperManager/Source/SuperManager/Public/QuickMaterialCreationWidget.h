@@ -32,10 +32,13 @@ public:
 	E_ChannelPackingType ChannelPackingType = E_ChannelPackingType::ECPT_NoChannelPacking;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CreateMaterialFromSelectedTextures")
-	bool bOverrideMaterialName = true;
+	bool bOverrideMaterialName = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CreateMaterialFromSelectedTextures", meta = (EditCondition = "bOverrideMaterialName"))
 	FString MaterialName = TEXT("M_");
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CreateMaterialFromSelectedTextures")
+	bool bCreateMaterialInstance = false;
 
 #pragma endregion
 
@@ -112,5 +115,7 @@ private:
 	bool TryConnectORMSocket(UMaterialExpressionTextureSample* TextureSampleNode, UTexture2D* SelectedTexture, UMaterial* CreatedMaterial);
 
 #pragma endregion
+
+	class UMaterialInstanceConstant* CreateMaterialInstanceAsset(UMaterial* ParentMaterial, FString& NameOfMaterialInstance, FString& PathToPutMI);
 	
 };

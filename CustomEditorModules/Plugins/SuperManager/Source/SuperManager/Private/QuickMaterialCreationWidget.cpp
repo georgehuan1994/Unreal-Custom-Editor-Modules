@@ -7,6 +7,8 @@
 #include "EditorAssetLibrary.h"
 #include "EditorUtilityLibrary.h"
 #include "Factories/MaterialFactoryNew.h"
+#include "Factories/MaterialInstanceConstantFactoryNew.h"
+#include "Materials/MaterialInstanceConstant.h"
 
 #pragma region QuickMaterialCreationCore
 
@@ -30,8 +32,17 @@ void UQuickMaterialCreationWidget::CreateMaterialFromSelectedTextures()
 	FString SelectedTextureFolderPath;
 	uint32 PinsConnectedCounter = 0;
 
-	if (!ProcessSelectedData(SelectedAssetData, SelectedTexturesArray, SelectedTextureFolderPath)) return;
-	if (CheckIsNameUsed(SelectedTextureFolderPath, MaterialName)) return;
+	if (!ProcessSelectedData(SelectedAssetData, SelectedTexturesArray, SelectedTextureFolderPath))
+	{
+		MaterialName = TEXT("M_");
+		return;
+	}
+	
+	if (CheckIsNameUsed(SelectedTextureFolderPath, MaterialName))
+	{
+		MaterialName = TEXT("M_");
+		return;
+	}
 	
 	UMaterial* CreatedMaterial = CreateMaterialAsset(MaterialName, SelectedTextureFolderPath);
 	if (!CreatedMaterial)
@@ -61,6 +72,11 @@ void UQuickMaterialCreationWidget::CreateMaterialFromSelectedTextures()
 	if (PinsConnectedCounter > 0)
 	{
 		Debug::ShowNotifyInfo(TEXT("Successfully connected ") + FString::FromInt(PinsConnectedCounter) + TEXT(" pins"));
+	}
+	
+	if (bCreateMaterialInstance)
+	{
+		CreateMaterialInstanceAsset(CreatedMaterial, MaterialName, SelectedTextureFolderPath);
 	}
 
 	MaterialName = TEXT("M_");
@@ -459,3 +475,32 @@ bool UQuickMaterialCreationWidget::TryConnectORMSocket(UMaterialExpressionTextur
 }
 
 #pragma endregion
+
+
+/**
+ * @brief 创建材质实例
+ * @param ParentMaterial 父材质
+ * @param NameOfMaterialInstance 材质实例名
+ * @param PathToPutMI 材质实例存放路径
+ * @return 
+ */
+UMaterialInstanceConstant* UQuickMaterialCreationWidget::CreateMaterialInstanceAsset(UMaterial* ParentMaterial, FString& NameOfMaterialInstance, FString& PathToPutMI)
+{
+	NameOfMaterialInstance.RemoveFromStart(TEXT("M_"));
+	NameOfMaterialInstance.InsertAt(0, TEXT("MI_"));
+
+	const FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools"));
+	UMaterialInstanceConstantFactoryNew* MIFactory = NewObject<UMaterialInstanceConstantFactoryNew>();
+	UObject* CreatedObject = AssetToolsModule.Get().CreateAsset(NameOfMaterialInstance, PathToPutMI, UMaterialInstanceConstant::StaticClass(), MIFactory);
+
+	if (UMaterialInstanceConstant* CreatedMI = Cast<UMaterialInstanceConstant>(CreatedObject))
+	{
+		CreatedMI->SetParentEditorOnly(ParentMaterial);
+		CreatedMI->PostEditChange();
+		ParentMaterial->PostEditChange();
+
+		return CreatedMI;
+	}
+
+	return nullptr;
+}
