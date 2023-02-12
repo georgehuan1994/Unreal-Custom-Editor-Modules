@@ -6,6 +6,14 @@
 #include "EditorUtilityWidget.h"
 #include "QuickMaterialCreationWidget.generated.h"
 
+UENUM(BlueprintType)
+enum class E_ChannelPackingType : uint8
+{
+	ECPT_NoChannelPacking UMETA(DisplayName = "No Channel Packing"),
+	ECPT_ORM UMETA(DisplayName = "Occlusion,Roughness,Metallic"),
+	ECPT_MAX UMETA(DisplayName = "DefaultMax")
+};
+
 /**
  * 
  */
@@ -19,6 +27,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void CreateMaterialFromSelectedTextures();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CreateMaterialFromSelectedTextures")
+	E_ChannelPackingType ChannelPackingType = E_ChannelPackingType::ECPT_NoChannelPacking;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CreateMaterialFromSelectedTextures")
 	bool bOverrideMaterialName = true;
@@ -67,6 +78,15 @@ public:
 		TEXT("_AO")
 	};
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Supported Texture Names")
+	TArray<FString> ORMArray = {
+		TEXT("_arm"),
+		TEXT("_ARM"),
+		TEXT("_orm"),
+		TEXT("_ORM"),
+		TEXT("OcclusionRoughnessMetallic"),
+	};
+
 #pragma endregion
 
 
@@ -77,6 +97,7 @@ private:
 	bool CheckIsNameUsed(const FString& FolderPathToCheck, const FString& MaterialNameToCheck);
 	UMaterial* CreateMaterialAsset(const FString& NameOfMaterial, const FString& PathToPutMaterial);
 	void Default_CreateMaterialNodes(UMaterial* CreatedMaterial, UTexture2D* SelectedTexture, uint32& PinsConnectedCounter);
+	void ORM_CreateMaterialNodes(UMaterial* CreatedMaterial, UTexture2D* SelectedTexture, uint32& PinsConnectedCounter);
 
 #pragma endregion
 
@@ -88,6 +109,7 @@ private:
 	bool TryConnectRoughnessSocket(UMaterialExpressionTextureSample* TextureSampleNode, UTexture2D* SelectedTexture, UMaterial* CreatedMaterial);
 	bool TryConnectNormalSocket(UMaterialExpressionTextureSample* TextureSampleNode, UTexture2D* SelectedTexture, UMaterial* CreatedMaterial);
 	bool TryConnectAOSocket(UMaterialExpressionTextureSample* TextureSampleNode, UTexture2D* SelectedTexture, UMaterial* CreatedMaterial);
+	bool TryConnectORMSocket(UMaterialExpressionTextureSample* TextureSampleNode, UTexture2D* SelectedTexture, UMaterial* CreatedMaterial);
 
 #pragma endregion
 	

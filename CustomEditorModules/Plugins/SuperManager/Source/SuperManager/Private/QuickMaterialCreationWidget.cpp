@@ -44,7 +44,18 @@ void UQuickMaterialCreationWidget::CreateMaterialFromSelectedTextures()
 	{
 		if (!Texture) continue;
 
-		Default_CreateMaterialNodes(CreatedMaterial, Texture, PinsConnectedCounter);
+		switch (ChannelPackingType)
+		{
+		case E_ChannelPackingType::ECPT_NoChannelPacking:
+			Default_CreateMaterialNodes(CreatedMaterial, Texture, PinsConnectedCounter);
+			break;
+		case E_ChannelPackingType::ECPT_ORM:
+			ORM_CreateMaterialNodes(CreatedMaterial, Texture, PinsConnectedCounter);
+			break;
+		case E_ChannelPackingType::ECPT_MAX: break;
+		default: ;
+		}
+		
 	}
 
 	if (PinsConnectedCounter > 0)
@@ -205,6 +216,45 @@ void UQuickMaterialCreationWidget::Default_CreateMaterialNodes(UMaterial* Create
 	}
 
 	Debug::PrintLog(TEXT("Failed to connect the texture: " + SelectedTexture->GetName()));
+}
+
+/**
+ * @brief 创建 ORM 材质节点
+ * @param CreatedMaterial 材质
+ * @param SelectedTexture 纹理
+ * @param PinsConnectedCounter 引脚计数
+ */
+void UQuickMaterialCreationWidget::ORM_CreateMaterialNodes(UMaterial* CreatedMaterial, UTexture2D* SelectedTexture, uint32& PinsConnectedCounter)
+{
+	UMaterialExpressionTextureSample* TextureSampleNode = NewObject<UMaterialExpressionTextureSample>(CreatedMaterial);
+	if (!TextureSampleNode) return;
+	
+	if (!CreatedMaterial->HasBaseColorConnected())
+	{
+		if (TryConnectBaseColorSocket(TextureSampleNode, SelectedTexture, CreatedMaterial))
+		{
+			PinsConnectedCounter++;
+			return;
+		}
+	}
+
+	if (!CreatedMaterial->HasNormalConnected())
+	{
+		if (TryConnectNormalSocket(TextureSampleNode, SelectedTexture, CreatedMaterial))
+		{
+			PinsConnectedCounter++;
+			return;
+		}
+	}
+
+	if (!CreatedMaterial->HasRoughnessConnected())
+	{
+		if (TryConnectORMSocket(TextureSampleNode, SelectedTexture, CreatedMaterial))
+		{
+			PinsConnectedCounter += 3;
+			return;
+		}
+	}
 }
 
 #pragma endregion
@@ -370,6 +420,41 @@ bool UQuickMaterialCreationWidget::TryConnectAOSocket(UMaterialExpressionTexture
 		}
 	}
 
+	return false;
+}
+
+/**
+ * @brief 指定采样器纹理并将 RGB 分量连接到材质的 AmbientOcclusion Roughness Metallic Socket
+ * @param TextureSampleNode 采样器
+ * @param SelectedTexture 纹理
+ * @param CreatedMaterial 材质
+ * @return 
+ */
+bool UQuickMaterialCreationWidget::TryConnectORMSocket(UMaterialExpressionTextureSample* TextureSampleNode, UTexture2D* SelectedTexture, UMaterial* CreatedMaterial)
+{
+	for (const FString& ORMName : ORMArray)
+	{
+		if (SelectedTexture->GetName().Contains(ORMName))
+		{
+			SelectedTexture->CompressionSettings = TextureCompressionSettings::TC_Masks;
+			SelectedTexture->SRGB = false;
+			SelectedTexture->PostEditChange();
+
+			TextureSampleNode->Texture = SelectedTexture;
+			TextureSampleNode->SamplerType = EMaterialSamplerType::SAMPLERTYPE_Masks;
+			TextureSampleNode->MaterialExpressionEditorX -= 600;
+			TextureSampleNode->MaterialExpressionEditorY += 250;
+
+			CreatedMaterial->GetExpressionCollection().AddExpression(TextureSampleNode);
+			CreatedMaterial->GetExpressionInputForProperty(MP_AmbientOcclusion)->Connect(1, TextureSampleNode);
+			CreatedMaterial->GetExpressionInputForProperty(MP_Roughness)->Connect(2, TextureSampleNode);
+			CreatedMaterial->GetExpressionInputForProperty(MP_Metallic)->Connect(3, TextureSampleNode);
+			CreatedMaterial->PostEditChange();
+			
+			return true;
+		}
+	}
+	
 	return false;
 }
 
