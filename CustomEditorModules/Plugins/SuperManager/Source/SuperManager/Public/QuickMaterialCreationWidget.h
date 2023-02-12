@@ -56,7 +56,8 @@ public:
 	TArray<FString> NormalArray = {
 		TEXT("_Normal"),
 		TEXT("_NormalMap"),
-		TEXT("_nor")
+		TEXT("_nor"),
+		TEXT("_N"),
 	};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Supported Texture Names")
@@ -75,6 +76,19 @@ private:
 	bool ProcessSelectedData(const TArray<FAssetData>& SelectedDataToProcess, TArray<UTexture2D*>& OutSelectedTexturesArray, FString& OutSelectedTexturePackagePath);
 	bool CheckIsNameUsed(const FString& FolderPathToCheck, const FString& MaterialNameToCheck);
 	UMaterial* CreateMaterialAsset(const FString& NameOfMaterial, const FString& PathToPutMaterial);
+	void Default_CreateMaterialNodes(UMaterial* CreatedMaterial, UTexture2D* SelectedTexture, uint32& PinsConnectedCounter);
 
 #pragma endregion
+
+
+#pragma region CreateMaterialNodesConnectPins
+
+	bool TryConnectBaseColorSocket(UMaterialExpressionTextureSample* TextureSampleNode, UTexture2D* SelectedTexture, UMaterial* CreatedMaterial);
+	bool TryConnectMetallicSocket(UMaterialExpressionTextureSample* TextureSampleNode, UTexture2D* SelectedTexture, UMaterial* CreatedMaterial);
+	bool TryConnectRoughnessSocket(UMaterialExpressionTextureSample* TextureSampleNode, UTexture2D* SelectedTexture, UMaterial* CreatedMaterial);
+	bool TryConnectNormalSocket(UMaterialExpressionTextureSample* TextureSampleNode, UTexture2D* SelectedTexture, UMaterial* CreatedMaterial);
+	bool TryConnectAOSocket(UMaterialExpressionTextureSample* TextureSampleNode, UTexture2D* SelectedTexture, UMaterial* CreatedMaterial);
+
+#pragma endregion
+	
 };
