@@ -87,7 +87,7 @@ public:
 		TEXT("_ARM"),
 		TEXT("_orm"),
 		TEXT("_ORM"),
-		TEXT("OcclusionRoughnessMetallic"),
+		TEXT("_OcclusionRoughnessMetallic"),
 	};
 
 #pragma endregion
